@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 4.0)
-project(DiscreteMathLab1 C)
+project(DFT C)
 
-set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD 11)
 
-add_executable(DiscreteMathLab1 main.c)
+add_executable(
+        DFT src/main/main.c
+        src/main/bigint/bigint.h
+        src/main/dft/dft.h
+)
