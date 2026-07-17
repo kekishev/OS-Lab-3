@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <stdarg.h>
 
 #define BASE (1ULL << sizeof(unsigned int) * 8)
 
@@ -563,6 +564,21 @@ static inline Bigint *shift_right(Bigint *a, unsigned int m) {
 }
 
 /**
+ * Deletes an arbitrary number of Bigint pointers.
+ * @param count - how many Bigint* arguments follow.
+ */
+static inline void delete_many_bigint(int count, ...) {
+    va_list args;
+    va_start(args, count);
+
+    for (int i = 0; i < count; i++) {
+        delete(va_arg(args, Bigint*));
+    }
+
+    va_end(args);
+}
+
+/**
  * It is the implementation of karatsuba algorithm for two Bigint numbers.
  * @param a - a Bigint number, which becomes a return value.
  */
@@ -620,27 +636,12 @@ static inline Bigint *Karatsuba(Bigint *a, Bigint *b) {
     a->numbers = result->numbers;
     result->numbers = NULL;
 
-    delete(aLowCopy);
-    delete(bLowCopy1);
-    delete(bLowCopy2);
-    delete(s2Copy);
-    delete(bHighCopy);
-    delete(res3Copy);
-    delete(res1Copy1);
-    delete(res1Copy2);
-    delete(res2Copy);
-    delete(aHigh);
-    delete(bHigh);
-    delete(aLow);
-    delete(bLow);
-    delete(s1);
-    delete(s2);
-    delete(res1);
-    delete(tmpRes1);
-    delete(res3);
-    delete(tmpRes2);
-    delete(res2);
-    delete(result);
+    delete_many_bigint(21,
+        aLowCopy, bLowCopy1, bLowCopy2, s2Copy, bHighCopy,
+        res3Copy, res1Copy1, res1Copy2, res2Copy,
+        aHigh, bHigh, aLow, bLow,
+        s1, s2, res1, tmpRes1, res3, tmpRes2, res2, result
+        );
 
     normalize_bigint(a);
     return a;
@@ -774,39 +775,6 @@ static inline Bigint *factorial(Bigint *multiplication_algorithm(Bigint *a, Bigi
 }
 
 /**
- * ТЗ номер 3 п.a
- */
-static inline Bigint *af(Bigint *multiplication_algorithm(Bigint *a, Bigint *b), Bigint *n) {
-    if (n == NULL) {
-        return NULL;
-    }
-
-    if (n->firstDigit <= 0) { // assume Bigint n is always natural.
-        return NULL;
-    }
-
-    long long check;
-    if (n->numbers[0] == 1) {
-        check = (long long) n->firstDigit;
-    } else {
-        check = (long long) n->numbers[1];
-    }
-
-    if (check % 2 == 0) {
-        Bigint *result = init();
-        if (result == NULL) {
-            return NULL;
-        }
-
-        result->firstDigit = 0;
-        result->numbers[0] = 1;
-        return result;
-    }
-
-    return factorial(multiplication_algorithm, n);
-}
-
-/**
  * function of counting digits in numbers written in 10-numeric system.
  */
 static inline unsigned int count_number_of_digits(unsigned int result, unsigned int n) {
@@ -879,8 +847,9 @@ static inline Bigint *positive_degree(Bigint *multiplication_algorithm(Bigint *a
         base_copy1 = deep_copy(result);
     }
 
-    delete(base_copy1);
-    delete(degree_copy);
+    delete_many_bigint(2,
+        base_copy1, degree_copy);
+
     return result;
 }
 
@@ -995,80 +964,6 @@ static inline Bigint *mod(Bigint *a, Bigint *b) {
             return NULL;
         }
     }
-    return result;
-}
-
-/**
- * Т3 номер 3, п.b — computes 115249^4183 mod 2^n
- *
- * Counts modulus of result of exponentiation repeatedly to make a number be beyond the modulus.
- */
-static inline Bigint *count(Bigint *multiplication_algorithm(Bigint *a, Bigint *b), Bigint *n) {
-    if (n == NULL) {
-        return NULL;
-    }
-
-    Bigint *two   = to_base(2);
-    Bigint *nCopy = deep_copy(n);
-    if (two == NULL || nCopy == NULL) {
-        delete(two);
-        delete(nCopy);
-        return NULL;
-    }
-
-    Bigint *modulus = positive_degree(multiplication_algorithm, two, nCopy);
-    delete(two);
-    delete(nCopy);
-    if (modulus == NULL) {
-        return NULL;
-    }
-
-    Bigint *result = to_base(1);
-    Bigint *base   = to_base(115249);
-    if (result == NULL || base == NULL) {
-        delete(modulus);
-        delete(result);
-        delete(base);
-        return NULL;
-    }
-
-    unsigned int exp = 4183;
-    while (exp > 0) {
-        if (exp & 1) {
-            Bigint *baseCopy = deep_copy(base);
-            result = multiplication_algorithm(result, baseCopy);
-            Bigint *reduced = mod(result, modulus);
-
-            delete(baseCopy);
-            delete(result);
-
-            result = reduced;
-            if (result == NULL) {
-                delete(base);
-                delete(modulus);
-                return NULL;
-            }
-        }
-        exp >>= 1;
-        if (exp > 0) {
-            Bigint *base_copy = deep_copy(base);
-            base = multiplication_algorithm(base, base_copy);
-            Bigint *reduced = mod(base, modulus);
-
-            delete(base_copy);
-            delete(base);
-
-            base = reduced;
-            if (base == NULL) {
-                delete(result);
-                delete(modulus);
-                return NULL;
-            }
-        }
-    }
-
-    delete(base);
-    delete(modulus);
     return result;
 }
 

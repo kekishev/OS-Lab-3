@@ -7,4 +7,6 @@ add_executable(
         DFT src/main/main.c
         src/main/bigint/bigint.h
         src/main/dft/dft.h
+        src/main/bigint/lab/lab.h
+        src/main/bigint/lab/lab.c
 )
