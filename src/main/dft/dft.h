@@ -1,8 +1,4 @@
-#ifndef DFT
-#define DFT
-
+#pragma once
 #include "../bigint/bigint.h"
 
 
-
-#endif
